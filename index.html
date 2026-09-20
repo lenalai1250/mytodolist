@@ -73,7 +73,28 @@
   .cal-grid button.sel.has::after { background: #fff; }
   .cal-grid button.has.pending::after { background: var(--p-high); }
   .cal-grid button.sel.has.pending::after { background: #fff; }
-  .empty img { display: block; width: 150px; max-width: 60%; margin: 0 auto 12px; border-radius: 12px; }
+  #game { margin-top: 14px; }
+  .gmain { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center; }
+  #plant { width: 190px; height: 225px; flex-shrink: 0; }
+  .ginfo { flex: 1; min-width: 150px; }
+  .ginfo .gstage { font-size: 1.15rem; font-weight: 700; }
+  .ginfo .gline { font-size: .85rem; color: var(--muted); margin: 4px 0; }
+  .ginfo .progress { margin: 8px 0; }
+  #gmsg { min-height: 1.3em; color: var(--accent); font-size: .9rem; font-weight: 600; }
+  #harvest { background: var(--accent); color: #fff; border: none; margin-top: 6px; }
+  #harvest[hidden] { display: none; }
+  #garden { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+  #garden .gt { width: 100%; font-size: .85rem; color: var(--muted); }
+  #garden svg { width: 38px; height: 38px; }
+  .can, .drop { opacity: 0; }
+  .pour .can { animation: tilt 1.5s ease-in-out; transform-origin: 160px 44px; }
+  .pour .drop { animation: fall .9s ease-in; }
+  @keyframes tilt { 0% { opacity: 0; transform: rotate(0); } 15% { opacity: 1; transform: rotate(0); }
+    30%, 75% { opacity: 1; transform: rotate(-25deg); } 100% { opacity: 0; transform: rotate(0); } }
+  @keyframes fall { 0% { opacity: 0; transform: translateY(0); } 15% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(135px); } }
+  .pop { animation: pop .6s ease-out; transform-origin: 110px 196px; }
+  @keyframes pop { 0% { transform: scale(.85); } 60% { transform: scale(1.06); } 100% { transform: scale(1); } }
   .empty { text-align: center; color: var(--muted); padding: 24px 0; }
   .actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
   .actions button { font-size: .85rem; color: var(--muted); }
@@ -118,6 +139,22 @@
       <button id="carry">↪ 帶入昨天未完成</button>
       <button id="clearDone">清除已完成</button>
     </div>
+  </div>
+
+  <div class="card" id="game">
+    <div class="gmain">
+      <svg id="plant" viewBox="0 0 220 260" role="img" aria-label="你的小花"></svg>
+      <div class="ginfo">
+        <div class="gstage" id="gstage"></div>
+        <div class="gline" id="gheight"></div>
+        <div class="gline" id="gspecies"></div>
+        <div class="progress"><div id="gbar"></div></div>
+        <div class="gline" id="gnext"></div>
+        <div id="gmsg" aria-live="polite"></div>
+        <button id="harvest" hidden>收進花園，種下新種子</button>
+      </div>
+    </div>
+    <div id="garden"></div>
   </div>
 </div>
 
@@ -198,7 +235,7 @@ function render() {
   const ul = $("list");
   ul.innerHTML = "";
   if (!list.length) {
-    ul.innerHTML = '<div class="empty"><img src="pikmin.jpg" alt="mm myes I agree"><div>這天還沒有待辦，新增一件吧 ✨</div></div>';
+    ul.innerHTML = '<div class="empty">這天還沒有待辦，新增一件吧 ✨</div>';
     return;
   }
   const sorted = [...list].sort((a, b) =>
@@ -210,7 +247,13 @@ function render() {
 
     const cb = document.createElement("input");
     cb.type = "checkbox"; cb.checked = t.done;
-    cb.onchange = () => { t.done = cb.checked; save(); render(); };
+    cb.onchange = () => {
+      t.done = cb.checked;
+      const water = t.done && !t.watered; // 每件待辦只澆一次水，取消勾選也不會扣水
+      if (water) t.watered = true;
+      save(); render();
+      if (water) waterPlant();
+    };
 
     const span = document.createElement("span");
     span.textContent = t.text;
@@ -288,6 +331,138 @@ $("carry").onclick = () => {
   if (!added) alert("前一天沒有可帶入的未完成事項");
   save(); render();
 };
+
+/* ---------- 澆花小遊戲 ---------- */
+const GKEY = "daily-todo-garden-v1";
+const SPECIES = [
+  { name: "向日葵", petal: "#f5c518", n: 14, pw: 5,  ph: 15, center: "#6b4423", cr: 10 },
+  { name: "雛菊",   petal: "#ffffff", n: 12, pw: 4,  ph: 14, center: "#f2c230", cr: 8 },
+  { name: "波斯菊", petal: "#f28cb1", n: 8,  pw: 8,  ph: 15, center: "#f2c230", cr: 6 },
+  { name: "矢車菊", petal: "#5b8def", n: 10, pw: 4,  ph: 14, center: "#3b3b8f", cr: 7 },
+  { name: "罌粟花", petal: "#e8503a", n: 6,  pw: 12, ph: 15, center: "#2b2b2b", cr: 6 },
+  { name: "紫菀",   petal: "#a880d8", n: 16, pw: 3,  ph: 15, center: "#f2c230", cr: 7 },
+];
+const randSpecies = () => Math.floor(Math.random() * SPECIES.length);
+// 階段 = floor(水滴 / 10)：0 種子、1 發芽、2/3/4 長高 1/2/3 公分（4 起有花苞）、5 小花、6 盛開
+const STAGE = ["🌰 種子", "🌱 發芽", "🌿 幼苗", "🌿 幼苗", "🌷 花苞", "🌼 小花", "🌸 盛開"];
+const HEIGHT = [0, 26, 48, 70, 92, 92, 92];
+const CM = [0, 0, 1, 2, 3, 3, 3];
+const PAIRS = [0, 0, 1, 2, 3, 3, 3];
+const NEXT_GOAL = ["發芽", "長高到 1 公分", "長高到 2 公分", "長高到 3 公分並結出花苞", "開出小花", "完整開花"];
+const CHEER = ["", "🌱 發芽了！", "📏 長高到 1 公分！", "📏 長高到 2 公分！", "🌷 3 公分了，長出花苞！", "🌼 開出小花了！", "🌸 完整開花！"];
+
+let game = loadGame();
+let pourTimer;
+
+function loadGame() {
+  try {
+    const g = JSON.parse(localStorage.getItem(GKEY));
+    if (g && typeof g.drops === "number") return g;
+  } catch {}
+  return { drops: 0, species: randSpecies(), garden: [] };
+}
+function saveGame() {
+  try { localStorage.setItem(GKEY, JSON.stringify(game)); } catch {}
+}
+
+function flowerHead(sp, s, x, y) {
+  const dist = (sp.cr + sp.ph * 0.7) * s;
+  let out = "";
+  for (let i = 0; i < sp.n; i++) {
+    out += `<ellipse cx="${x}" cy="${y - dist}" rx="${sp.pw * s}" ry="${sp.ph * s}" fill="${sp.petal}" ` +
+           `stroke="rgba(0,0,0,.18)" stroke-width=".6" transform="rotate(${(i * 360 / sp.n).toFixed(1)} ${x} ${y})"/>`;
+  }
+  return out + `<circle cx="${x}" cy="${y}" r="${sp.cr * s}" fill="${sp.center}"/>`;
+}
+function leaf(x, y, side, size) {
+  return `<ellipse cx="${x + side * 10 * size}" cy="${y}" rx="${10 * size}" ry="${4 * size}" fill="#6fae5a" ` +
+         `transform="rotate(${side * -30} ${x} ${y})"/>`;
+}
+
+function plantSVG(d) {
+  const idx = Math.min(6, Math.floor(d / 10));
+  const sp = SPECIES[game.species];
+  const top = 196 - HEIGHT[idx];
+  let s = `<g class="can"><rect x="140" y="30" width="40" height="28" rx="6" fill="#6f9fd0"/>` +
+          `<polygon points="140,40 127,32 125,37 140,50" fill="#5a88b8"/>` +
+          `<path d="M180 36 Q194 40 180 52" fill="none" stroke="#5a88b8" stroke-width="4"/></g>`;
+  for (let i = 0; i < 4; i++) s += `<circle class="drop" cx="${118 + i * 4}" cy="${54 + (i % 2) * 4}" r="3" fill="#6fb6f0" style="animation-delay:${.35 + i * .12}s"/>`;
+  s += `<path d="M70 205 L150 205 L142 252 L78 252 Z" fill="#c8794b"/>` +
+       `<rect x="66" y="196" width="88" height="14" rx="4" fill="#d98b5c"/>` +
+       `<ellipse cx="110" cy="197" rx="40" ry="6" fill="#5b4030"/>`;
+  s += `<g class="pop">`;
+  if (idx === 0) {
+    s += `<ellipse cx="110" cy="195" rx="6" ry="4" fill="#9a7a44"/>`;
+  } else {
+    s += `<path d="M110 196 Q105 ${196 - HEIGHT[idx] / 2} 110 ${top}" fill="none" stroke="#5a9a4a" stroke-width="4" stroke-linecap="round"/>`;
+    for (let i = 0; i < PAIRS[idx]; i++) {
+      const y = 196 - HEIGHT[idx] * [0.28, 0.48, 0.68][i];
+      s += leaf(110, y, i % 2 ? 1 : -1, 1.2) + leaf(110, y + 4, i % 2 ? -1 : 1, 1.2);
+    }
+    if (idx <= 3) s += leaf(110, top, -1, 0.9) + leaf(110, top, 1, 0.9);
+    if (idx === 4) {
+      s += `<ellipse cx="110" cy="${top - 8}" rx="8" ry="12" fill="${sp.petal}" stroke="rgba(0,0,0,.2)" stroke-width=".6"/>` +
+           `<path d="M101 ${top - 6} Q110 ${top + 9} 119 ${top - 6} Q110 ${top - 2} 101 ${top - 6}Z" fill="#5a9a4a"/>`;
+    } else if (idx === 5) s += flowerHead(sp, 0.55, 110, top);
+    else if (idx === 6) s += flowerHead(sp, 1, 110, top);
+  }
+  return s + `</g>`;
+}
+
+function renderGame(opts = {}) {
+  const d = game.drops;
+  const idx = Math.min(6, Math.floor(d / 10));
+  const svg = $("plant");
+  svg.classList.remove("pour");
+  svg.innerHTML = plantSVG(d);
+  if (opts.pour) {
+    svg.classList.add("pour");
+    clearTimeout(pourTimer);
+    pourTimer = setTimeout(() => svg.classList.remove("pour"), 1600);
+  }
+  $("gstage").textContent = STAGE[idx];
+  $("gheight").textContent = idx === 0 ? "還在土裡沉睡…" : `高度：${CM[idx]} 公分`;
+  $("gspecies").textContent = "品種：" + (idx >= 4 ? SPECIES[game.species].name : "？？？（長出花苞才知道）");
+  $("gbar").style.width = (idx >= 6 ? 100 : (d % 10) * 10) + "%";
+  $("gnext").textContent = idx >= 6 ? `💧 ${d}　已經完整開花啦！`
+    : `💧 ${d}　再 ${(idx + 1) * 10 - d} 滴水 → ${NEXT_GOAL[idx]}`;
+  $("harvest").hidden = idx < 6;
+
+  const g = $("garden");
+  g.innerHTML = `<div class="gt">🌼 我的花園（${game.garden.length}）</div>`;
+  if (!game.garden.length) g.innerHTML += `<div class="gt">完整開花的花會收進這裡</div>`;
+  for (const i of game.garden) {
+    const sp = SPECIES[i];
+    if (!sp) continue;
+    const el = document.createElement("span");
+    el.title = sp.name;
+    el.innerHTML = `<svg viewBox="-38 -38 76 76">${flowerHead(sp, 1, 0, 0)}</svg>`;
+    g.append(el);
+  }
+}
+
+function waterPlant() {
+  const before = Math.min(6, Math.floor(game.drops / 10));
+  game.drops++;
+  saveGame();
+  renderGame({ pour: true });
+  const after = Math.min(6, Math.floor(game.drops / 10));
+  $("gmsg").textContent = after > before ? CHEER[after] : "💧 澆水 +1";
+}
+
+$("harvest").onclick = () => {
+  game.garden.push(game.species);
+  game.drops = Math.max(0, game.drops - 60);
+  game.species = randSpecies();
+  saveGame();
+  renderGame();
+  $("gmsg").textContent = "已收進花園，新的種子種下了 🌰";
+};
+
+// 舊資料：已完成的待辦視為已澆過水，避免一開始就白拿水滴
+for (const k in data) for (const t of data[k]) if (t.done && t.watered === undefined) t.watered = true;
+save();
+renderGame();
 
 render();
 </script>
