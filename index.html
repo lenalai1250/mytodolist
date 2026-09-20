@@ -47,7 +47,7 @@
   li .del:hover { color: var(--danger); }
   li input.edit { flex: 1; font: inherit; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--accent);
     background: var(--bg); color: var(--text); }
-  :root { --p-high: #d0554a; --p-mid: #d9a03f; --p-low: #6b9bc3; }
+  :root { --p-high: #d0554a; --p-mid: #d9a03f; --p-low: #58b368; }
   select { font: inherit; padding: 10px 8px; border-radius: 8px; border: 1px solid var(--line);
     background: var(--bg); color: var(--text); }
   li { border-left: 4px solid transparent; padding-left: 10px; }
@@ -55,7 +55,7 @@
   li.p-mid { border-left-color: var(--p-mid); }
   li.p-low { border-left-color: var(--p-low); }
   li.done { opacity: .6; }
-  li .pri { font-size: .75rem; padding: 2px 8px; border-radius: 99px; border: none; color: #fff; flex-shrink: 0; }
+  li .pri { width: 16px; height: 16px; padding: 0; border-radius: 50%; border: none; flex-shrink: 0; }
   li .pri.high { background: var(--p-high); }
   li .pri.mid { background: var(--p-mid); }
   li .pri.low { background: var(--p-low); }
@@ -130,6 +130,55 @@
     100% { opacity: 0; transform: translateY(135px); } }
   .pop { animation: pop .6s ease-out; transform-origin: 110px 196px; }
   @keyframes pop { 0% { transform: scale(.85); } 60% { transform: scale(1.06); } 100% { transform: scale(1); } }
+  .modes { display: flex; gap: 6px; margin-bottom: 12px; }
+  .modes button { font-size: .88rem; white-space: nowrap; }
+  .modes button[aria-pressed=true] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 700; }
+  #monthView { display: none; }
+  body.month .app { max-width: 980px; }
+  body.month #monthView { display: block; }
+  body.month .listonly, body.month .nav, body.month #weekly, body.month #cal, body.month #game { display: none !important; }
+  .mhead { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .mhead strong { flex: 1; text-align: center; font-size: 1.1rem; }
+  .mgrid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; background: var(--line);
+    border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .mwd { background: var(--card); text-align: center; font-size: .8rem; color: var(--muted); padding: 6px 0; }
+  .mcell { min-height: 100px; padding: 4px; background: var(--card); border: none; border-radius: 0; text-align: left;
+    display: flex; flex-direction: column; gap: 2px; align-items: stretch; cursor: pointer; color: var(--text); font: inherit; }
+  .mcell:hover { background: var(--accent-soft); }
+  .mcell.out { opacity: .45; }
+  .mcell .dn { font-size: .8rem; width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 50%; }
+  .mcell.today .dn { background: var(--accent); color: #fff; font-weight: 700; }
+  .ev { display: block; font-size: .72rem; background: var(--accent-soft); color: var(--accent); border-radius: 4px;
+    padding: 1px 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .more { font-size: .7rem; color: var(--muted); padding-left: 4px; }
+  @media (max-width: 560px) {
+    .mcell { min-height: 68px; padding: 2px; }
+    .ev { font-size: .6rem; padding: 0 2px; }
+  }
+  #dayDialog h2 { margin: 0 0 8px; }
+  #dList { margin-bottom: 12px; max-height: 40vh; overflow-y: auto; }
+  #dList li { border-left: none; padding-left: 4px; }
+  #dList .etime { flex: none; color: var(--muted); font-size: .85rem; min-width: 3em; }
+  #dList .empty { padding: 12px 0; }
+  #dForm { display: flex !important; gap: 6px; margin: 0 0 12px !important; }
+  #dForm input { width: auto; }
+  #dForm #dTime { flex: none; width: 105px; padding: 8px; }
+  #dForm #dText { flex: 1; min-width: 0; }
+  #dForm button[type=submit] { background: var(--accent); color: #fff; border: none; }
+  .projbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 12px; }
+  .pchip { border-radius: 99px; padding: 4px 14px; font-size: .88rem; white-space: nowrap; }
+  .pchip.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .pchip.add { color: var(--muted); border-style: dashed; }
+  .pmini { border: none; background: none; color: var(--muted); font-size: .8rem; padding: 4px 6px; white-space: nowrap; }
+  .pmini:hover { color: var(--accent); border: none; }
+  .pmini.danger:hover { color: var(--danger); }
+  .projbar form.pform { display: flex; margin: 0; gap: 6px; }
+  .pform input[type=text] { flex: none; width: 130px; padding: 5px 10px; }
+  .pform button { padding: 4px 12px; font-size: .85rem; }
+  .pform .plain { background: var(--card); color: var(--text); border: 1px solid var(--line); }
+  .ptag { font-size: .72rem; padding: 2px 8px; border-radius: 99px; background: var(--accent-soft); color: var(--accent);
+    border: none; max-width: 7em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; }
+  .ptag.none { background: var(--bg); color: var(--muted); }
   .empty { text-align: center; color: var(--muted); padding: 24px 0; }
   .actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
   .actions button { font-size: .85rem; color: var(--muted); }
@@ -148,6 +197,21 @@
     </div>
   </header>
   <div class="sub" id="dateLabel"></div>
+  <div class="modes" role="group" aria-label="檢視模式">
+    <button id="modeList" aria-pressed="true">📝 清單模式</button>
+    <button id="modeMonth" aria-pressed="false">🗓️ 月曆模式</button>
+  </div>
+  <div class="projbar listonly" id="projBar" aria-label="專案"></div>
+
+  <div class="card" id="monthView">
+    <div class="mhead">
+      <button id="mPrev" aria-label="上個月">‹</button>
+      <strong id="mTitle"></strong>
+      <button id="mNext" aria-label="下個月">›</button>
+      <button id="mToday">今天</button>
+    </div>
+    <div class="mgrid" id="mGrid"></div>
+  </div>
 
   <div class="card" id="cal" hidden>
     <div class="cal-head">
@@ -158,15 +222,15 @@
     <div class="cal-grid" id="calGrid"></div>
   </div>
 
-  <div class="card">
+  <div class="card listonly" id="daily">
     <div class="progress"><div id="bar"></div></div>
     <div class="stat"><span id="count"></span><span id="pct"></span></div>
     <form id="form">
       <input type="text" id="input" placeholder="新增待辦事項…" maxlength="200" autocomplete="off">
       <select id="priority" aria-label="優先順序">
-        <option value="high">🔴 高</option>
-        <option value="mid" selected>🟡 中</option>
-        <option value="low">🔵 低</option>
+        <option value="high" title="高">🔴</option>
+        <option value="mid" title="中" selected>🟡</option>
+        <option value="low" title="低">🟢</option>
       </select>
       <button type="submit">新增</button>
     </form>
@@ -182,9 +246,9 @@
     <form id="wForm">
       <input type="text" id="wInput" placeholder="這週預計完成…（還沒決定哪天也沒關係）" maxlength="200" autocomplete="off">
       <select id="wPriority" aria-label="優先順序">
-        <option value="high">🔴 高</option>
-        <option value="mid" selected>🟡 中</option>
-        <option value="low">🔵 低</option>
+        <option value="high" title="高">🔴</option>
+        <option value="mid" title="中" selected>🟡</option>
+        <option value="low" title="低">🟢</option>
       </select>
       <button type="submit">新增</button>
     </form>
@@ -215,6 +279,20 @@
     <button id="openComment">💬 留下評論</button>
   </div>
 </div>
+
+<dialog id="dayDialog">
+  <h2 id="dTitle"></h2>
+  <ul id="dList"></ul>
+  <form id="dForm">
+    <input type="time" id="dTime" aria-label="時間（可不填）">
+    <input type="text" id="dText" placeholder="新增行程…" required maxlength="100" autocomplete="off" aria-label="行程內容">
+    <button type="submit">新增</button>
+  </form>
+  <div class="dlg-actions">
+    <button type="button" id="dToList">📝 看這天的待辦</button>
+    <button type="button" id="dClose">關閉</button>
+  </div>
+</dialog>
 
 <dialog id="commentDialog">
   <form id="commentForm" method="dialog">
@@ -262,6 +340,103 @@ const NEXT = { high: "mid", mid: "low", low: "high" };
 
 const $ = id => document.getElementById(id);
 
+/* ---------- 專案 ---------- */
+const PKEY = "daily-todo-projects-v1";
+let proj = { list: [], sel: "all" };
+try {
+  const p = JSON.parse(localStorage.getItem(PKEY));
+  if (p && Array.isArray(p.list)) proj = { list: p.list, sel: p.sel || "all" };
+} catch {}
+if (proj.sel !== "all" && !proj.list.some(p => p.id === proj.sel)) proj.sel = "all";
+const psave = () => { try { localStorage.setItem(PKEY, JSON.stringify(proj)); } catch {} };
+const projName = id => proj.list.find(p => p.id === id)?.name;
+const inView = t => proj.sel === "all" || t.project === proj.sel;
+let addingProj = false;
+
+// 在「全部」檢視下，點待辦上的專案標籤可依序切換所屬專案
+function cycleProject(t, store) {
+  const ids = [undefined, ...proj.list.map(p => p.id)];
+  const i = ids.indexOf(projName(t.project) ? t.project : undefined);
+  t.project = ids[(i + 1) % ids.length];
+  store(); render();
+}
+function projTag(t, store) {
+  if (proj.sel !== "all" || !proj.list.length) return null;
+  const b = document.createElement("button");
+  const n = projName(t.project);
+  b.className = "ptag" + (n ? "" : " none");
+  b.textContent = n || "未分類";
+  b.title = "點擊切換專案";
+  b.onclick = () => cycleProject(t, store);
+  return b;
+}
+
+function renderProjects() {
+  const bar = $("projBar");
+  bar.innerHTML = "";
+  const chip = (label, id) => {
+    const b = document.createElement("button");
+    b.className = "pchip" + (proj.sel === id ? " on" : "");
+    b.textContent = label;
+    b.onclick = () => { proj.sel = id; addingProj = false; psave(); render(); };
+    bar.append(b);
+  };
+  chip("全部", "all");
+  for (const p of proj.list) chip(p.name, p.id);
+
+  if (addingProj) {
+    const f = document.createElement("form");
+    f.className = "pform";
+    const inp = document.createElement("input");
+    inp.type = "text"; inp.maxLength = 20; inp.placeholder = "專案名稱，例如：工作";
+    inp.setAttribute("aria-label", "專案名稱");
+    const ok = document.createElement("button");
+    ok.type = "submit"; ok.textContent = "新增";
+    const no = document.createElement("button");
+    no.type = "button"; no.className = "plain"; no.textContent = "取消";
+    const cancel = () => { addingProj = false; renderProjects(); };
+    no.onclick = cancel;
+    inp.onkeydown = e => { if (e.key === "Escape") cancel(); };
+    f.onsubmit = e => {
+      e.preventDefault();
+      const v = inp.value.trim();
+      if (v) {
+        const p = { id: uid(), name: v };
+        proj.list.push(p);
+        proj.sel = p.id;
+      }
+      addingProj = false; psave(); render();
+    };
+    f.append(inp, ok, no);
+    bar.append(f);
+    inp.focus();
+  } else {
+    const add = document.createElement("button");
+    add.className = "pchip add"; add.textContent = "＋ 新增專案";
+    add.onclick = () => { addingProj = true; renderProjects(); };
+    bar.append(add);
+  }
+
+  if (proj.sel !== "all") {
+    const cur = proj.list.find(p => p.id === proj.sel);
+    const ren = document.createElement("button");
+    ren.className = "pmini"; ren.textContent = "✎ 改名";
+    ren.onclick = () => {
+      const v = (prompt("專案新名稱", cur.name) || "").trim();
+      if (v) { cur.name = v; psave(); render(); }
+    };
+    const del = document.createElement("button");
+    del.className = "pmini danger"; del.textContent = "🗑 刪除專案";
+    del.onclick = () => {
+      if (!confirm(`刪除專案「${cur.name}」？\n專案裡的待辦會保留，變成「未分類」。`)) return;
+      proj.list = proj.list.filter(p => p.id !== cur.id);
+      proj.sel = "all";
+      psave(); render();
+    };
+    bar.append(ren, del);
+  }
+}
+
 let calOpen = false;
 let calView = current.slice(0, 7); // "YYYY-MM"
 
@@ -294,6 +469,10 @@ function renderCal() {
 }
 
 function render() {
+  renderMonth();
+  if (dayOpen) renderDayList();
+  renderProjects();
+  $("input").placeholder = proj.sel === "all" ? "新增待辦事項…" : `新增「${projName(proj.sel)}」的待辦…`;
   renderWeekly();
   if (calOpen) {
     if (calView !== current.slice(0, 7)) calView = current.slice(0, 7);
@@ -303,7 +482,8 @@ function render() {
   const wd = "日一二三四五六"[new Date(y, m - 1, d).getDay()];
   $("dateLabel").textContent = `${y} 年 ${m} 月 ${d} 日　星期${wd}` + (current === ymd(new Date()) ? "（今天）" : "");
 
-  const list = data[current] || [];
+  const all = data[current] || [];
+  const list = all.filter(inView);
   const done = list.filter(t => t.done).length;
   const pct = list.length ? Math.round(done / list.length * 100) : 0;
   $("bar").style.width = pct + "%";
@@ -313,7 +493,7 @@ function render() {
   const ul = $("list");
   ul.innerHTML = "";
   if (!list.length) {
-    ul.innerHTML = '<div class="empty">這天還沒有待辦，新增一件吧 ✨</div>';
+    ul.innerHTML = `<div class="empty">${proj.sel === "all" ? "這天還沒有待辦，新增一件吧 ✨" : "這個專案這天還沒有待辦"}</div>`;
     return;
   }
   const sorted = [...list].sort((a, b) =>
@@ -340,14 +520,18 @@ function render() {
 
     const del = document.createElement("button");
     del.className = "del"; del.textContent = "✕"; del.setAttribute("aria-label", "刪除");
-    del.onclick = () => { data[current] = list.filter(x => x !== t); save(); render(); };
+    del.onclick = () => { data[current] = all.filter(x => x !== t); save(); render(); };
 
     const pri = document.createElement("button");
-    pri.className = "pri " + p; pri.textContent = LABEL[p];
-    pri.title = "點擊切換優先順序";
+    pri.className = "pri " + p;
+    pri.title = `優先順序：${LABEL[p]}（點擊切換）`;
+    pri.setAttribute("aria-label", pri.title);
     pri.onclick = () => { t.priority = NEXT[p]; save(); render(); };
 
-    li.append(cb, span, pri, del);
+    li.append(cb, span);
+    const tag = projTag(t, save);
+    if (tag) li.append(tag);
+    li.append(pri, del);
     ul.append(li);
   }
 }
@@ -373,7 +557,7 @@ $("form").onsubmit = e => {
   e.preventDefault();
   const v = $("input").value.trim();
   if (!v) return;
-  tasks().push({ id: uid(), text: v, done: false, priority: $("priority").value });
+  tasks().push({ id: uid(), text: v, done: false, priority: $("priority").value, project: proj.sel === "all" ? undefined : proj.sel });
   $("input").value = "";
   save(); render();
 };
@@ -396,15 +580,19 @@ $("prev").onclick = () => { current = shift(current, -1); render(); };
 $("next").onclick = () => { current = shift(current, 1); render(); };
 $("today").onclick = () => { current = ymd(new Date()); render(); };
 $("clearDone").onclick = () => {
-  data[current] = (data[current] || []).filter(t => !t.done);
+  data[current] = (data[current] || []).filter(t => !(t.done && inView(t)));
   save(); render();
 };
 $("carry").onclick = () => {
-  const prev = (data[shift(current, -1)] || []).filter(t => !t.done);
-  const existing = new Set(tasks().map(t => t.text));
+  const prev = (data[shift(current, -1)] || []).filter(t => !t.done && inView(t));
+  const key = t => `${t.project || ""}|${t.text}`;
+  const existing = new Set(tasks().map(key));
   let added = 0;
   for (const t of prev) {
-    if (!existing.has(t.text)) { tasks().push({ id: uid(), text: t.text, done: false, priority: t.priority || "mid" }); added++; }
+    if (!existing.has(key(t))) {
+      tasks().push({ id: uid(), text: t.text, done: false, priority: t.priority || "mid", project: t.project });
+      added++;
+    }
   }
   if (!added) alert("前一天沒有可帶入的未完成事項");
   save(); render();
@@ -566,14 +754,15 @@ function scheduleTo(t, day) {
   t.days.sort();
   const list = (data[day] ||= []);
   if (!list.some(x => x.wid === t.id)) {
-    list.push({ id: uid(), text: t.text, done: false, priority: t.priority || "mid", wid: t.id });
+    list.push({ id: uid(), text: t.text, done: false, priority: t.priority || "mid", wid: t.id, project: t.project });
   }
   save(); wsave(); render();
 }
 
 function renderWeekly() {
   const ws = weekStart(current);
-  const list = weekly[ws] || [];
+  const all = weekly[ws] || [];
+  const list = all.filter(inView);
   const done = list.filter(t => t.status === "done").length;
   $("wkTitle").textContent = `🗓️ ${ws === weekStart(ymd(new Date())) ? "本週" : "週"}計畫　${md(ws)} – ${md(shift(ws, 6))}`;
   $("wkCount").textContent = `已完成 ${done} / ${list.length}`;
@@ -602,16 +791,19 @@ function renderWeekly() {
     span.ondblclick = () => startEdit(li, span, t, wsave);
 
     const pri = document.createElement("button");
-    pri.className = "pri " + p; pri.textContent = LABEL[p];
-    pri.title = "點擊切換優先順序";
+    pri.className = "pri " + p;
+    pri.title = `優先順序：${LABEL[p]}（點擊切換）`;
+    pri.setAttribute("aria-label", pri.title);
     pri.onclick = () => { t.priority = NEXT[p]; wsave(); render(); };
 
     const del = document.createElement("button");
     del.className = "del"; del.textContent = "✕"; del.setAttribute("aria-label", "刪除");
-    del.onclick = () => { weekly[ws] = list.filter(x => x !== t); wsave(); render(); };
+    del.onclick = () => { weekly[ws] = all.filter(x => x !== t); wsave(); render(); };
 
     const sub = document.createElement("div");
     sub.className = "wsub";
+    const ptag = projTag(t, wsave);
+    if (ptag) sub.append(ptag);
     if (t.status === "doing") {
       const tag = document.createElement("span");
       tag.className = "tag"; tag.textContent = "進行中";
@@ -650,26 +842,151 @@ $("wForm").onsubmit = e => {
   e.preventDefault();
   const v = $("wInput").value.trim();
   if (!v) return;
-  wtasks().push({ id: uid(), text: v, status: "todo", priority: $("wPriority").value, days: [] });
+  wtasks().push({ id: uid(), text: v, status: "todo", priority: $("wPriority").value, days: [], project: proj.sel === "all" ? undefined : proj.sel });
   $("wInput").value = "";
   wsave(); render();
 };
 $("wClear").onclick = () => {
-  weekly[weekStart(current)] = wtasks().filter(t => t.status !== "done");
+  weekly[weekStart(current)] = wtasks().filter(t => !(t.status === "done" && inView(t)));
   wsave(); render();
 };
 $("wCarry").onclick = () => {
-  const prev = (weekly[shift(weekStart(current), -7)] || []).filter(t => t.status !== "done");
-  const existing = new Set(wtasks().map(t => t.text));
+  const prev = (weekly[shift(weekStart(current), -7)] || []).filter(t => t.status !== "done" && inView(t));
+  const key = t => `${t.project || ""}|${t.text}`;
+  const existing = new Set(wtasks().map(key));
   let added = 0;
   for (const t of prev) {
-    if (!existing.has(t.text)) {
-      wtasks().push({ id: uid(), text: t.text, status: "todo", priority: t.priority || "mid", days: [] });
+    if (!existing.has(key(t))) {
+      wtasks().push({ id: uid(), text: t.text, status: "todo", priority: t.priority || "mid", days: [], project: t.project });
       added++;
     }
   }
   if (!added) alert("上週沒有可帶入的未完成事項");
   wsave(); render();
+};
+
+/* ---------- 月曆模式（每日行程） ---------- */
+const EKEY = "daily-todo-events-v1";
+const MKEY = "daily-todo-mode-v1";
+let events = {};
+try { events = JSON.parse(localStorage.getItem(EKEY)) || {}; } catch {}
+const esave = () => { try { localStorage.setItem(EKEY, JSON.stringify(events)); } catch {} };
+let mode = "list";
+try { if (localStorage.getItem(MKEY) === "month") mode = "month"; } catch {}
+let mView = current.slice(0, 7); // "YYYY-MM"
+let dayOpen = null;
+document.body.classList.toggle("month", mode === "month");
+$("modeList").setAttribute("aria-pressed", mode === "list");
+$("modeMonth").setAttribute("aria-pressed", mode === "month");
+
+const dayEvents = key => [...(events[key] || [])].sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+const evLabel = e => (e.time ? e.time + " " : "") + e.text;
+
+function setMode(m) {
+  mode = m;
+  try { localStorage.setItem(MKEY, m); } catch {}
+  document.body.classList.toggle("month", m === "month");
+  $("modeList").setAttribute("aria-pressed", m === "list");
+  $("modeMonth").setAttribute("aria-pressed", m === "month");
+  if (m === "month") mView = current.slice(0, 7);
+  render();
+}
+$("modeList").onclick = () => setMode("list");
+$("modeMonth").onclick = () => setMode("month");
+
+function renderMonth() {
+  if (mode !== "month") return;
+  const [y, m] = mView.split("-").map(Number);
+  $("mTitle").textContent = `${y} 年 ${m} 月`;
+  const grid = $("mGrid");
+  grid.innerHTML = "";
+  for (const w of "日一二三四五六") {
+    const el = document.createElement("div");
+    el.className = "mwd"; el.textContent = w;
+    grid.append(el);
+  }
+  const first = new Date(y, m - 1, 1).getDay();
+  const rows = Math.ceil((first + new Date(y, m, 0).getDate()) / 7);
+  const todayStr = ymd(new Date());
+  for (let i = 0; i < rows * 7; i++) {
+    const dt = new Date(y, m - 1, 1 - first + i);
+    const key = ymd(dt);
+    const evs = dayEvents(key);
+    const cell = document.createElement("button");
+    cell.className = "mcell" + (dt.getMonth() !== m - 1 ? " out" : "") + (key === todayStr ? " today" : "");
+    cell.setAttribute("aria-label", `${dt.getMonth() + 1} 月 ${dt.getDate()} 日，${evs.length} 個行程`);
+    const dn = document.createElement("span");
+    dn.className = "dn"; dn.textContent = dt.getDate();
+    cell.append(dn);
+    for (const e of evs.slice(0, 3)) {
+      const p = document.createElement("span");
+      p.className = "ev"; p.textContent = evLabel(e); p.title = evLabel(e);
+      cell.append(p);
+    }
+    if (evs.length > 3) {
+      const more = document.createElement("span");
+      more.className = "more"; more.textContent = `還有 ${evs.length - 3} 項…`;
+      cell.append(more);
+    }
+    cell.onclick = () => openDay(key);
+    grid.append(cell);
+  }
+}
+
+function moveMonth(n) {
+  const [y, m] = mView.split("-").map(Number);
+  mView = ymd(new Date(y, m - 1 + n, 1)).slice(0, 7);
+  renderMonth();
+}
+$("mPrev").onclick = () => moveMonth(-1);
+$("mNext").onclick = () => moveMonth(1);
+$("mToday").onclick = () => { mView = ymd(new Date()).slice(0, 7); renderMonth(); };
+
+function openDay(key) {
+  dayOpen = key;
+  renderDayList();
+  $("dayDialog").showModal();
+  $("dText").focus();
+}
+function renderDayList() {
+  const [y, m, d] = dayOpen.split("-").map(Number);
+  $("dTitle").textContent = `${m} 月 ${d} 日　星期${"日一二三四五六"[new Date(y, m - 1, d).getDay()]}`;
+  const ul = $("dList");
+  ul.innerHTML = "";
+  const list = dayEvents(dayOpen);
+  if (!list.length) {
+    ul.innerHTML = '<div class="empty">這天還沒有行程</div>';
+    return;
+  }
+  for (const e of list) {
+    const li = document.createElement("li");
+    const time = document.createElement("span");
+    time.className = "etime"; time.textContent = e.time || "全天";
+    const span = document.createElement("span");
+    span.textContent = e.text; span.title = "點兩下編輯";
+    span.ondblclick = () => startEdit(li, span, e, esave);
+    const del = document.createElement("button");
+    del.className = "del"; del.textContent = "✕"; del.setAttribute("aria-label", "刪除");
+    del.onclick = () => { events[dayOpen] = events[dayOpen].filter(x => x !== e); esave(); render(); };
+    li.append(time, span, del);
+    ul.append(li);
+  }
+}
+$("dForm").onsubmit = e => {
+  e.preventDefault();
+  const text = $("dText").value.trim();
+  if (!text) return;
+  (events[dayOpen] ||= []).push({ id: uid(), time: $("dTime").value, text });
+  $("dText").value = ""; $("dTime").value = "";
+  esave(); render();
+  $("dText").focus();
+};
+$("dClose").onclick = () => $("dayDialog").close();
+$("dayDialog").onclose = () => { dayOpen = null; };
+$("dToList").onclick = () => {
+  current = dayOpen;
+  $("dayDialog").close();
+  setMode("list");
 };
 
 /* ---------- 評論 ---------- */
