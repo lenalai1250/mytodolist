@@ -18,8 +18,10 @@
     font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
     display: flex; justify-content: center; padding: 24px 16px; min-height: 100vh; }
   .app { width: 100%; max-width: 520px; }
-  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
-  .nav { display: flex; gap: 6px; }
+  header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+  header h1 { white-space: nowrap; }
+  .nav { display: flex; gap: 6px; flex-wrap: wrap; }
+  .nav button { white-space: nowrap; }
   button { font: inherit; cursor: pointer; border: 1px solid var(--line); background: var(--card);
     color: var(--text); border-radius: 8px; padding: 6px 12px; }
   button:hover { border-color: var(--accent); }
@@ -57,7 +59,9 @@
   li .pri.high { background: var(--p-high); }
   li .pri.mid { background: var(--p-mid); }
   li .pri.low { background: var(--p-low); }
-  #calBtn[aria-expanded=true] { background: var(--accent-soft); border-color: var(--accent); }
+  #weekly[hidden] { display: none; }
+  #wkBtn { white-space: nowrap; }
+  #wkBtn[aria-expanded=true], #calBtn[aria-expanded=true] { background: var(--accent-soft); border-color: var(--accent); }
   #cal { margin-bottom: 14px; }
   #cal[hidden] { display: none; }
   .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
@@ -73,6 +77,37 @@
   .cal-grid button.sel.has::after { background: #fff; }
   .cal-grid button.has.pending::after { background: var(--p-high); }
   .cal-grid button.sel.has.pending::after { background: #fff; }
+  #weekly { margin-top: 14px; }
+  .wk-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+  .wk-head span { font-size: .85rem; color: var(--muted); }
+  #wList li { flex-wrap: wrap; }
+  #wList .st { border: none; background: none; font-size: 1.3rem; padding: 0 2px; color: var(--accent); line-height: 1; flex-shrink: 0; }
+  .wsub { flex-basis: 100%; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; padding-left: 32px; margin-top: -4px; }
+  .wsub .chip { font-size: .75rem; padding: 2px 8px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); border: none; }
+  .wsub .tag { font-size: .75rem; color: var(--muted); }
+  .wsub select { font-size: .75rem; padding: 2px 6px; }
+  #comments { margin-top: 14px; }
+  #openComment { width: 100%; background: var(--accent); color: #fff; border: none; padding: 10px; }
+  #commentList { margin-top: 4px; }
+  #commentList li { display: block; border-left: none; padding: 12px 4px; }
+  #commentList .who { font-weight: 700; font-size: .9rem; }
+  #commentList .when { color: var(--muted); font-size: .75rem; margin-left: 8px; font-weight: 400; }
+  #commentList .txt { margin-top: 4px; white-space: pre-wrap; word-break: break-word; }
+  dialog { border: none; border-radius: 14px; padding: 20px; width: min(420px, calc(100vw - 32px));
+    background: var(--card); color: var(--text); }
+  dialog::backdrop { background: rgba(0,0,0,.4); }
+  dialog form { display: block; margin: 0; }
+  dialog form button { background: var(--card); color: var(--text); border: 1px solid var(--line); white-space: nowrap; }
+  dialog form button.primary { background: var(--accent); color: #fff; border: none; }
+  dialog h2 { margin: 0 0 16px; font-size: 1.2rem; white-space: nowrap; }
+  dialog label { display: grid; grid-template-columns: 3.5em 1fr; align-items: start; gap: 8px;
+    font-size: .95rem; color: var(--text); margin-bottom: 14px; white-space: nowrap; }
+  dialog label > span { padding-top: 10px; }
+  dialog input, dialog textarea { display: block; width: 100%; min-width: 0; font: inherit; padding: 10px 12px;
+    border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--text); resize: vertical; }
+  dialog input:focus, dialog textarea:focus { outline: 2px solid var(--accent); border-color: transparent; }
+  .dlg-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  .dlg-actions .primary { background: var(--accent); color: #fff; border: none; }
   #game { margin-top: 14px; }
   .gmain { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center; }
   #plant { width: 190px; height: 225px; flex-shrink: 0; }
@@ -105,6 +140,7 @@
   <header>
     <h1>📝 每日待辦</h1>
     <div class="nav">
+      <button id="wkBtn" aria-expanded="false" aria-controls="weekly" aria-label="顯示週計畫">🗓️ 週計畫</button>
       <button id="calBtn" aria-expanded="false" aria-controls="cal" aria-label="顯示日曆">📅</button>
       <button id="prev" aria-label="前一天">‹</button>
       <button id="today">今天</button>
@@ -141,6 +177,24 @@
     </div>
   </div>
 
+  <div class="card" id="weekly" hidden>
+    <div class="wk-head"><strong id="wkTitle"></strong><span id="wkCount"></span></div>
+    <form id="wForm">
+      <input type="text" id="wInput" placeholder="這週預計完成…（還沒決定哪天也沒關係）" maxlength="200" autocomplete="off">
+      <select id="wPriority" aria-label="優先順序">
+        <option value="high">🔴 高</option>
+        <option value="mid" selected>🟡 中</option>
+        <option value="low">🔵 低</option>
+      </select>
+      <button type="submit">新增</button>
+    </form>
+    <ul id="wList"></ul>
+    <div class="actions">
+      <button id="wCarry">↪ 帶入上週未完成</button>
+      <button id="wClear">清除已完成</button>
+    </div>
+  </div>
+
   <div class="card" id="game">
     <div class="gmain">
       <svg id="plant" viewBox="0 0 220 260" role="img" aria-label="你的小花"></svg>
@@ -156,7 +210,30 @@
     </div>
     <div id="garden"></div>
   </div>
+
+  <div class="card" id="comments">
+    <button id="openComment">💬 留下評論</button>
+  </div>
 </div>
+
+<dialog id="commentDialog">
+  <form id="commentForm" method="dialog">
+    <h2>留下評論</h2>
+    <label><span>名字</span>
+      <input type="text" id="cName" required maxlength="40" autocomplete="name">
+    </label>
+    <label><span>Email</span>
+      <input type="email" id="cEmail" required maxlength="100" autocomplete="email">
+    </label>
+    <label><span>評論</span>
+      <textarea id="cText" required maxlength="1000" rows="5"></textarea>
+    </label>
+    <div class="dlg-actions">
+      <button type="button" id="cCancel">取消</button>
+      <button type="submit" class="primary">送出</button>
+    </div>
+  </form>
+</dialog>
 
 <script>
 const KEY = "daily-todo-v1";
@@ -217,6 +294,7 @@ function renderCal() {
 }
 
 function render() {
+  renderWeekly();
   if (calOpen) {
     if (calView !== current.slice(0, 7)) calView = current.slice(0, 7);
     renderCal();
@@ -274,7 +352,7 @@ function render() {
   }
 }
 
-function startEdit(li, span, t) {
+function startEdit(li, span, t, store = save) {
   const inp = document.createElement("input");
   inp.className = "edit"; inp.value = t.text; inp.maxLength = 200;
   li.replaceChild(inp, span);
@@ -282,7 +360,7 @@ function startEdit(li, span, t) {
   const finish = commit => {
     const v = inp.value.trim();
     if (commit && v) t.text = v;
-    save(); render();
+    store(); render();
   };
   inp.onblur = () => finish(true);
   inp.onkeydown = e => {
@@ -463,6 +541,170 @@ $("harvest").onclick = () => {
 for (const k in data) for (const t of data[k]) if (t.done && t.watered === undefined) t.watered = true;
 save();
 renderGame();
+
+/* ---------- 週計畫 ---------- */
+const WKEY = "daily-todo-weekly-v1";
+const DAYS = "一二三四五六日";
+const ST_ICON = { todo: "○", doing: "◐", done: "●" };
+const ST_NEXT = { todo: "doing", doing: "done", done: "todo" };
+const ST_LABEL = { todo: "未開始", doing: "進行中", done: "已完成" };
+let weekly = {};
+try { weekly = JSON.parse(localStorage.getItem(WKEY)) || {}; } catch {}
+const wsave = () => { try { localStorage.setItem(WKEY, JSON.stringify(weekly)); } catch {} };
+
+// 一週從星期一開始
+function weekStart(s) {
+  const [y, m, d] = s.split("-").map(Number);
+  return ymd(new Date(y, m - 1, d - (new Date(y, m - 1, d).getDay() + 6) % 7));
+}
+const md = s => { const [, m, d] = s.split("-").map(Number); return `${m}/${d}`; };
+const wtasks = () => (weekly[weekStart(current)] ||= []);
+
+function scheduleTo(t, day) {
+  t.days ||= [];
+  if (!t.days.includes(day)) t.days.push(day);
+  t.days.sort();
+  const list = (data[day] ||= []);
+  if (!list.some(x => x.wid === t.id)) {
+    list.push({ id: uid(), text: t.text, done: false, priority: t.priority || "mid", wid: t.id });
+  }
+  save(); wsave(); render();
+}
+
+function renderWeekly() {
+  const ws = weekStart(current);
+  const list = weekly[ws] || [];
+  const done = list.filter(t => t.status === "done").length;
+  $("wkTitle").textContent = `🗓️ ${ws === weekStart(ymd(new Date())) ? "本週" : "週"}計畫　${md(ws)} – ${md(shift(ws, 6))}`;
+  $("wkCount").textContent = `已完成 ${done} / ${list.length}`;
+
+  const ul = $("wList");
+  ul.innerHTML = "";
+  if (!list.length) {
+    ul.innerHTML = '<div class="empty">這週還沒有計畫，先把想完成的事列出來吧</div>';
+    return;
+  }
+  const sorted = [...list].sort((a, b) =>
+    ((a.status === "done") - (b.status === "done")) || (RANK[a.priority || "mid"] - RANK[b.priority || "mid"]));
+  for (const t of sorted) {
+    const p = t.priority || "mid";
+    const li = document.createElement("li");
+    li.className = "p-" + p + (t.status === "done" ? " done" : "");
+
+    const st = document.createElement("button");
+    st.className = "st"; st.textContent = ST_ICON[t.status];
+    st.title = `${ST_LABEL[t.status]}（點擊切換：未開始 → 進行中 → 已完成）`;
+    st.onclick = () => { t.status = ST_NEXT[t.status]; wsave(); render(); };
+
+    const span = document.createElement("span");
+    span.textContent = t.text;
+    span.title = "點兩下編輯";
+    span.ondblclick = () => startEdit(li, span, t, wsave);
+
+    const pri = document.createElement("button");
+    pri.className = "pri " + p; pri.textContent = LABEL[p];
+    pri.title = "點擊切換優先順序";
+    pri.onclick = () => { t.priority = NEXT[p]; wsave(); render(); };
+
+    const del = document.createElement("button");
+    del.className = "del"; del.textContent = "✕"; del.setAttribute("aria-label", "刪除");
+    del.onclick = () => { weekly[ws] = list.filter(x => x !== t); wsave(); render(); };
+
+    const sub = document.createElement("div");
+    sub.className = "wsub";
+    if (t.status === "doing") {
+      const tag = document.createElement("span");
+      tag.className = "tag"; tag.textContent = "進行中";
+      sub.append(tag);
+    }
+    for (const day of t.days || []) {
+      const chip = document.createElement("button");
+      chip.className = "chip";
+      chip.textContent = `週${DAYS[(new Date(day.replace(/-/g, "/")).getDay() + 6) % 7]} ${md(day)}`;
+      chip.title = "前往這一天";
+      chip.onclick = () => { current = day; render(); };
+      sub.append(chip);
+    }
+    const sel = document.createElement("select");
+    sel.setAttribute("aria-label", "排到某一天");
+    sel.innerHTML = '<option value="">＋ 排到某天…</option>';
+    for (let i = 0; i < 7; i++) {
+      const day = shift(ws, i);
+      sel.innerHTML += `<option value="${day}">週${DAYS[i]} ${md(day)}</option>`;
+    }
+    sel.onchange = () => { if (sel.value) scheduleTo(t, sel.value); };
+    sub.append(sel);
+
+    li.append(st, span, pri, del, sub);
+    ul.append(li);
+  }
+}
+
+$("wkBtn").onclick = () => {
+  const open = $("weekly").hidden;
+  $("weekly").hidden = !open;
+  $("wkBtn").setAttribute("aria-expanded", open);
+};
+
+$("wForm").onsubmit = e => {
+  e.preventDefault();
+  const v = $("wInput").value.trim();
+  if (!v) return;
+  wtasks().push({ id: uid(), text: v, status: "todo", priority: $("wPriority").value, days: [] });
+  $("wInput").value = "";
+  wsave(); render();
+};
+$("wClear").onclick = () => {
+  weekly[weekStart(current)] = wtasks().filter(t => t.status !== "done");
+  wsave(); render();
+};
+$("wCarry").onclick = () => {
+  const prev = (weekly[shift(weekStart(current), -7)] || []).filter(t => t.status !== "done");
+  const existing = new Set(wtasks().map(t => t.text));
+  let added = 0;
+  for (const t of prev) {
+    if (!existing.has(t.text)) {
+      wtasks().push({ id: uid(), text: t.text, status: "todo", priority: t.priority || "mid", days: [] });
+      added++;
+    }
+  }
+  if (!added) alert("上週沒有可帶入的未完成事項");
+  wsave(); render();
+};
+
+/* ---------- 評論 ---------- */
+const SUPABASE_URL = "https://ndrayxkzcmwhamznudtg.supabase.co";
+const SUPABASE_KEY = "sb_publishable_xmv5QQmHeH86G37wc7ISkg_-Er6MbTy"; // 公開金鑰，可放前端；權限由資料表 RLS 控制
+const CAPI = SUPABASE_URL + "/rest/v1/comments";
+const CHEAD = { apikey: SUPABASE_KEY, "Content-Type": "application/json" };
+
+$("openComment").onclick = () => $("commentDialog").showModal();
+$("cCancel").onclick = () => $("commentDialog").close();
+$("commentForm").onsubmit = async e => {
+  e.preventDefault();
+  const btn = $("commentForm").querySelector(".primary");
+  btn.disabled = true; btn.textContent = "送出中…";
+  try {
+    const r = await fetch(CAPI, {
+      method: "POST",
+      headers: { ...CHEAD, Prefer: "return=minimal" },
+      body: JSON.stringify({
+        name: $("cName").value.trim(),
+        email: $("cEmail").value.trim(),
+        text: $("cText").value.trim(),
+      }),
+    });
+    if (!r.ok) throw new Error(r.status);
+    $("commentForm").reset();
+    $("commentDialog").close();
+    alert("感謝你的評論！");
+  } catch (err) {
+    console.error("送出評論失敗", err);
+    alert("評論送出失敗，請稍後再試");
+  } finally {
+    btn.disabled = false; btn.textContent = "送出";
+  }
+};
 
 render();
 </script>
