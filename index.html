@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>每日待辦清單</title>
+<style>
+  :root {
+    --bg: #f4f1ec; --card: #fff; --text: #2b2b2b; --muted: #8a857d;
+    --accent: #4f7f6b; --accent-soft: #e3eee9; --line: #ebe7e0; --danger: #c0574a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #1b1c1a; --card: #262825; --text: #ecebe7; --muted: #948f86;
+      --accent: #7fb59d; --accent-soft: #30403a; --line: #363833; --danger: #e07d70; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+    display: flex; justify-content: center; padding: 24px 16px; min-height: 100vh; }
+  .app { width: 100%; max-width: 520px; }
+  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .nav { display: flex; gap: 6px; }
+  button { font: inherit; cursor: pointer; border: 1px solid var(--line); background: var(--card);
+    color: var(--text); border-radius: 8px; padding: 6px 12px; }
+  button:hover { border-color: var(--accent); }
+  h1 { font-size: 1.5rem; margin: 0; }
+  .sub { color: var(--muted); font-size: .9rem; margin-bottom: 16px; }
+  .card { background: var(--card); border-radius: 14px; padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .progress { height: 8px; background: var(--accent-soft); border-radius: 99px; overflow: hidden; }
+  .progress > div { height: 100%; background: var(--accent); width: 0; transition: width .3s; }
+  .stat { display: flex; justify-content: space-between; font-size: .85rem; color: var(--muted); margin: 8px 0 14px; }
+  form { display: flex; gap: 8px; margin-bottom: 12px; }
+  input[type=text] { flex: 1; font: inherit; padding: 10px 12px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--text); min-width: 0; }
+  input[type=text]:focus { outline: 2px solid var(--accent); border-color: transparent; }
+  form button { background: var(--accent); color: #fff; border: none; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { display: flex; align-items: center; gap: 10px; padding: 10px 4px; border-bottom: 1px solid var(--line); }
+  li:last-child { border-bottom: none; }
+  li input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--accent); flex-shrink: 0; cursor: pointer; }
+  li span { flex: 1; word-break: break-word; cursor: text; }
+  li.done span { text-decoration: line-through; color: var(--muted); }
+  li .del { border: none; background: none; color: var(--muted); padding: 2px 8px; font-size: 1.1rem; }
+  li .del:hover { color: var(--danger); }
+  li input.edit { flex: 1; font: inherit; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--accent);
+    background: var(--bg); color: var(--text); }
+  :root { --p-high: #d0554a; --p-mid: #d9a03f; --p-low: #6b9bc3; }
+  select { font: inherit; padding: 10px 8px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--bg); color: var(--text); }
+  li { border-left: 4px solid transparent; padding-left: 10px; }
+  li.p-high { border-left-color: var(--p-high); }
+  li.p-mid { border-left-color: var(--p-mid); }
+  li.p-low { border-left-color: var(--p-low); }
+  li.done { opacity: .6; }
+  li .pri { font-size: .75rem; padding: 2px 8px; border-radius: 99px; border: none; color: #fff; flex-shrink: 0; }
+  li .pri.high { background: var(--p-high); }
+  li .pri.mid { background: var(--p-mid); }
+  li .pri.low { background: var(--p-low); }
+  #calBtn[aria-expanded=true] { background: var(--accent-soft); border-color: var(--accent); }
+  #cal { margin-bottom: 14px; }
+  #cal[hidden] { display: none; }
+  .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .cal-head strong { font-size: 1rem; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
+  .cal-grid .wd { font-size: .75rem; color: var(--muted); padding: 4px 0; }
+  .cal-grid button { position: relative; border: none; background: none; padding: 8px 0; border-radius: 8px; font-size: .9rem; }
+  .cal-grid button:hover { background: var(--accent-soft); }
+  .cal-grid button.today { color: var(--accent); font-weight: 700; }
+  .cal-grid button.sel { background: var(--accent); color: #fff; }
+  .cal-grid button.has::after { content: ""; position: absolute; bottom: 3px; left: 50%; width: 5px; height: 5px;
+    margin-left: -2.5px; border-radius: 50%; background: var(--accent); }
+  .cal-grid button.sel.has::after { background: #fff; }
+  .cal-grid button.has.pending::after { background: var(--p-high); }
+  .cal-grid button.sel.has.pending::after { background: #fff; }
+  .empty img { display: block; width: 150px; max-width: 60%; margin: 0 auto 12px; border-radius: 12px; }
+  .empty { text-align: center; color: var(--muted); padding: 24px 0; }
+  .actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .actions button { font-size: .85rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>📝 每日待辦</h1>
+    <div class="nav">
+      <button id="calBtn" aria-expanded="false" aria-controls="cal" aria-label="顯示日曆">📅</button>
+      <button id="prev" aria-label="前一天">‹</button>
+      <button id="today">今天</button>
+      <button id="next" aria-label="後一天">›</button>
+    </div>
+  </header>
+  <div class="sub" id="dateLabel"></div>
+
+  <div class="card" id="cal" hidden>
+    <div class="cal-head">
+      <button id="calPrev" aria-label="上個月">‹</button>
+      <strong id="calTitle"></strong>
+      <button id="calNext" aria-label="下個月">›</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+
+  <div class="card">
+    <div class="progress"><div id="bar"></div></div>
+    <div class="stat"><span id="count"></span><span id="pct"></span></div>
+    <form id="form">
+      <input type="text" id="input" placeholder="新增待辦事項…" maxlength="200" autocomplete="off">
+      <select id="priority" aria-label="優先順序">
+        <option value="high">🔴 高</option>
+        <option value="mid" selected>🟡 中</option>
+        <option value="low">🔵 低</option>
+      </select>
+      <button type="submit">新增</button>
+    </form>
+    <ul id="list"></ul>
+    <div class="actions">
+      <button id="carry">↪ 帶入昨天未完成</button>
+      <button id="clearDone">清除已完成</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY = "daily-todo-v1";
+let data = load();
+let current = ymd(new Date());
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; }
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(data)); } catch {}
+}
+function ymd(d) {
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function shift(dateStr, n) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return ymd(new Date(y, m - 1, d + n));
+}
+const tasks = () => (data[current] ||= []);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+const RANK = { high: 0, mid: 1, low: 2 };
+const LABEL = { high: "高", mid: "中", low: "低" };
+const NEXT = { high: "mid", mid: "low", low: "high" };
+
+const $ = id => document.getElementById(id);
+
+let calOpen = false;
+let calView = current.slice(0, 7); // "YYYY-MM"
+
+function renderCal() {
+  const [y, m] = calView.split("-").map(Number);
+  $("calTitle").textContent = `${y} 年 ${m} 月`;
+  const grid = $("calGrid");
+  grid.innerHTML = "";
+  for (const w of "日一二三四五六") {
+    const el = document.createElement("div");
+    el.className = "wd"; el.textContent = w;
+    grid.append(el);
+  }
+  const first = new Date(y, m - 1, 1).getDay();
+  const days = new Date(y, m, 0).getDate();
+  for (let i = 0; i < first; i++) grid.append(document.createElement("div"));
+  const todayStr = ymd(new Date());
+  for (let d = 1; d <= days; d++) {
+    const key = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const list = data[key] || [];
+    const b = document.createElement("button");
+    b.textContent = d;
+    if (key === todayStr) b.classList.add("today");
+    if (key === current) b.classList.add("sel");
+    if (list.length) b.classList.add("has");
+    if (list.some(t => !t.done)) b.classList.add("pending");
+    b.onclick = () => { current = key; render(); };
+    grid.append(b);
+  }
+}
+
+function render() {
+  if (calOpen) {
+    if (calView !== current.slice(0, 7)) calView = current.slice(0, 7);
+    renderCal();
+  }
+  const [y, m, d] = current.split("-").map(Number);
+  const wd = "日一二三四五六"[new Date(y, m - 1, d).getDay()];
+  $("dateLabel").textContent = `${y} 年 ${m} 月 ${d} 日　星期${wd}` + (current === ymd(new Date()) ? "（今天）" : "");
+
+  const list = data[current] || [];
+  const done = list.filter(t => t.done).length;
+  const pct = list.length ? Math.round(done / list.length * 100) : 0;
+  $("bar").style.width = pct + "%";
+  $("count").textContent = `已完成 ${done} / ${list.length}`;
+  $("pct").textContent = pct + "%";
+
+  const ul = $("list");
+  ul.innerHTML = "";
+  if (!list.length) {
+    ul.innerHTML = '<div class="empty"><img src="pikmin.jpg" alt="mm myes I agree"><div>這天還沒有待辦，新增一件吧 ✨</div></div>';
+    return;
+  }
+  const sorted = [...list].sort((a, b) =>
+    (a.done - b.done) || (RANK[a.priority || "mid"] - RANK[b.priority || "mid"]));
+  for (const t of sorted) {
+    const p = t.priority || "mid";
+    const li = document.createElement("li");
+    li.className = "p-" + p + (t.done ? " done" : "");
+
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.checked = t.done;
+    cb.onchange = () => { t.done = cb.checked; save(); render(); };
+
+    const span = document.createElement("span");
+    span.textContent = t.text;
+    span.title = "點兩下編輯";
+    span.ondblclick = () => startEdit(li, span, t);
+
+    const del = document.createElement("button");
+    del.className = "del"; del.textContent = "✕"; del.setAttribute("aria-label", "刪除");
+    del.onclick = () => { data[current] = list.filter(x => x !== t); save(); render(); };
+
+    const pri = document.createElement("button");
+    pri.className = "pri " + p; pri.textContent = LABEL[p];
+    pri.title = "點擊切換優先順序";
+    pri.onclick = () => { t.priority = NEXT[p]; save(); render(); };
+
+    li.append(cb, span, pri, del);
+    ul.append(li);
+  }
+}
+
+function startEdit(li, span, t) {
+  const inp = document.createElement("input");
+  inp.className = "edit"; inp.value = t.text; inp.maxLength = 200;
+  li.replaceChild(inp, span);
+  inp.focus(); inp.select();
+  const finish = commit => {
+    const v = inp.value.trim();
+    if (commit && v) t.text = v;
+    save(); render();
+  };
+  inp.onblur = () => finish(true);
+  inp.onkeydown = e => {
+    if (e.key === "Enter") inp.blur();
+    if (e.key === "Escape") { inp.onblur = null; finish(false); }
+  };
+}
+
+$("form").onsubmit = e => {
+  e.preventDefault();
+  const v = $("input").value.trim();
+  if (!v) return;
+  tasks().push({ id: uid(), text: v, done: false, priority: $("priority").value });
+  $("input").value = "";
+  save(); render();
+};
+$("calBtn").onclick = () => {
+  calOpen = !calOpen;
+  $("cal").hidden = !calOpen;
+  $("calBtn").setAttribute("aria-expanded", calOpen);
+  calView = current.slice(0, 7);
+  render();
+};
+const moveCal = n => {
+  const [y, m] = calView.split("-").map(Number);
+  const dt = new Date(y, m - 1 + n, 1);
+  calView = ymd(dt).slice(0, 7);
+  renderCal();
+};
+$("calPrev").onclick = () => moveCal(-1);
+$("calNext").onclick = () => moveCal(1);
+$("prev").onclick = () => { current = shift(current, -1); render(); };
+$("next").onclick = () => { current = shift(current, 1); render(); };
+$("today").onclick = () => { current = ymd(new Date()); render(); };
+$("clearDone").onclick = () => {
+  data[current] = (data[current] || []).filter(t => !t.done);
+  save(); render();
+};
+$("carry").onclick = () => {
+  const prev = (data[shift(current, -1)] || []).filter(t => !t.done);
+  const existing = new Set(tasks().map(t => t.text));
+  let added = 0;
+  for (const t of prev) {
+    if (!existing.has(t.text)) { tasks().push({ id: uid(), text: t.text, done: false, priority: t.priority || "mid" }); added++; }
+  }
+  if (!added) alert("前一天沒有可帶入的未完成事項");
+  save(); render();
+};
+
+render();
+</script>
+</body>
+</html>
